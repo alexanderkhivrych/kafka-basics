@@ -61,6 +61,19 @@ flowchart TD
     Message1 --> Message2
 ```
 
+
+```mermaid
+flowchart LR
+    Order[Order Service]
+    ESP[Event Streaming Platform]
+    Email[Email Service]
+    Warehouse[Warehouse Service]
+    
+    Order -->|order_placed| ESP
+    ESP -->|order_placed| Email
+    ESP -->|order_placed| Warehouse
+```
+
 ## Event Streaming in Kafka (Consumers with IDs)
 
 Kafka tracks which offset a given consumer has processed. In this diagram, each consumer (with an associated ID) consumes messages from the topic.
