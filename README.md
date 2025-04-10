@@ -1,7 +1,19 @@
 
-# Kafka Basics – Mermaid Diagrams
+# Kafka Basics
 
-## 1. Basic Event Streaming Platform
+**What is Kafka?**
+Kafka is a system designed for processing real-time data streams.
+
+What is an Event?
+An event is a piece of information captured at a specific moment.
+Examples include:
+- A record of a product being bought, saved in JSON format.
+- A full snapshot of a database entry after an update (CDC).
+- A simple log message from an app.
+
+## 1. Understanding Event Streaming?
+Event streaming means constantly sending out and receiving events as they happen — like a real-time flow of updates between services or systems.
+
 ```mermaid
 flowchart LR
     A[Order Service]:::producer -->|order_placed| K[Event Streaming Platform]:::kafka
