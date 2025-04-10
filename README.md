@@ -11,22 +11,138 @@ Examples include:
 - A full snapshot of a database entry after an update (CDC).
 - A simple log message from an app.
 
-## 1. Understanding Event Streaming?
+## Understanding Event Streaming?
 Event streaming means constantly sending out and receiving events as they happen — like a real-time flow of updates between services or systems.
 
+
+### Phase 1: One event is created
 ```mermaid
 flowchart LR
-    A[Order Service]:::producer -->|order_placed| K[Event Streaming Platform]:::kafka
-    B[Warehouse Service]:::consumer --> K
-    K --> C[Email Service]:::consumer
-    K --> B
+    Order[Order Service]:::producer -->|order_placed| Platform[Event Platform]:::kafka
 
-    classDef producer fill:#FFD700,stroke:#333,stroke-width:1px;
-    classDef consumer fill:#90EE90,stroke:#333,stroke-width:1px;
-    classDef kafka fill:#87CEFA,stroke:#333,stroke-width:1px;
+    classDef producer fill:#FFD700,color:#111,stroke:#333;
+    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
 ```
 
-## 2. Kafka Topic with Message Offsets
+---
+
+### Phase 2: Event flow initiated
+```mermaid
+flowchart LR
+    Order[Order Service]:::producer --> Platform[Event Platform]:::kafka
+    Platform --> Email[Email Service]:::consumer
+
+    classDef producer fill:#FFD700,color:#111,stroke:#333;
+    classDef consumer fill:#90EE90,color:#111,stroke:#333;
+    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
+```
+
+---
+
+### Phase 3: Multiple consumers receive the same event
+```mermaid
+flowchart LR
+    Order[Order Service]:::producer --> Platform[Event Platform]:::kafka
+    Platform --> Email[Email Service]:::consumer
+    Platform --> Warehouse[Warehouse Service]:::consumer
+
+    classDef producer fill:#FFD700,color:#111,stroke:#333;
+    classDef consumer fill:#90EE90,color:#111,stroke:#333;
+    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
+```
+
+---
+
+### Phase 4: Kafka stores messages in topics
+```mermaid
+flowchart TB
+    Kafka[Kafka]:::kafka --> Topic[orders topic]:::topic
+    Topic --> Msg[order_placed 1]:::message
+
+    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
+    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
+    classDef message fill:#FFA07A,color:#111,stroke:#333;
+```
+
+---
+
+### Phase 5: Topic with offsets
+```mermaid
+flowchart TB
+    Topic[orders topic]:::topic --> M0[0: order_placed 1]:::message
+    Topic --> M1[1: order_placed 2]:::message
+    Topic --> M2[2: order_placed 3]:::message
+
+    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
+    classDef message fill:#FFA07A,color:#111,stroke:#333;
+```
+
+---
+
+### Phase 6: Consumers with IDs
+```mermaid
+flowchart TB
+    Topic[orders topic]:::topic --> M0[0: order_placed 1]:::message
+    M0 --> Email[email_consumer]:::consumer
+    M0 --> Warehouse[warehouse_consumer]:::consumer
+
+    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
+    classDef message fill:#FFA07A,color:#111,stroke:#333;
+    classDef consumer fill:#90EE90,color:#111,stroke:#333;
+```
+
+---
+
+### Phase 7: Polling new messages
+```mermaid
+sequenceDiagram
+    participant Email as email_consumer
+    participant Kafka as Kafka
+    Email->>Kafka: Poll for new messages
+    Kafka-->>Email: order_placed 1
+```
+
+---
+
+### Phase 8: Commit offset
+```mermaid
+sequenceDiagram
+    participant Email as email_consumer
+    participant Kafka as Kafka
+    Email->>Kafka: Commit offset 1
+    Kafka-->>Email: Ok
+```
+
+---
+
+### Phase 9: Consume multiple messages
+
+```mermaid
+flowchart TB
+    Topic[orders topic]:::topic --> M0[0: order_placed 1]:::message
+    Topic --> M1[1: order_placed 2]:::message
+    Email[email_consumer]:::consumer --> M0
+    Email --> M1
+
+    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
+    classDef message fill:#FFA07A,color:#111,stroke:#333;
+    classDef consumer fill:#90EE90,color:#111,stroke:#333;
+```
+
+## Events as Messages
+When we pass an event from one place to another, it is a message.
+Kafka not only facilitates the storage of events, but also the passing of events from
+one place to another.
+
+Therefore, Kafka uses the term “messages” for events.
+
+# How Does Kafka Facilitate Event Streaming?
+Kafka stores durable and scalable logs of messages.
+- It allows applications to produce messages to the log.
+- It allows applications to consume messages from the log.
+- It allows the messages to be stored for as long as required
+
+## Kafka Topic with Message Offsets
 ```mermaid
 flowchart LR
     subgraph Kafka
