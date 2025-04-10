@@ -14,195 +14,197 @@ Examples include:
 ## Understanding Event Streaming?
 Event streaming means constantly sending out and receiving events as they happen — like a real-time flow of updates between services or systems.
 
-
-### Phase 1: One event is created
 ```mermaid
 flowchart LR
-    Order[Order Service]:::producer -->|order_placed| Platform[Event Platform]:::kafka
+    OrderService[Order Service]
+    EmailService[Email Service]
+    WarehouseService[Warehouse Service]
+    ESP[Event Streaming Platform]
 
-    classDef producer fill:#FFD700,color:#111,stroke:#333;
-    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
+    OrderService -->|order_placed| ESP
+    ESP --> EmailService
+    ESP --> WarehouseService
 ```
 
----
-
-### Phase 2: Event flow initiated
-```mermaid
-flowchart LR
-    Order[Order Service]:::producer --> Platform[Event Platform]:::kafka
-    Platform --> Email[Email Service]:::consumer
-
-    classDef producer fill:#FFD700,color:#111,stroke:#333;
-    classDef consumer fill:#90EE90,color:#111,stroke:#333;
-    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
-```
-
----
-
-### Phase 3: Multiple consumers receive the same event
-```mermaid
-flowchart LR
-    Order[Order Service]:::producer --> Platform[Event Platform]:::kafka
-    Platform --> Email[Email Service]:::consumer
-    Platform --> Warehouse[Warehouse Service]:::consumer
-
-    classDef producer fill:#FFD700,color:#111,stroke:#333;
-    classDef consumer fill:#90EE90,color:#111,stroke:#333;
-    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
-```
-
----
-
-### Phase 4: Kafka stores messages in topics
-```mermaid
-flowchart TB
-    Kafka[Kafka]:::kafka --> Topic[orders topic]:::topic
-    Topic --> Msg[order_placed 1]:::message
-
-    classDef kafka fill:#87CEFA,color:#111,stroke:#333;
-    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
-    classDef message fill:#FFA07A,color:#111,stroke:#333;
-```
-
----
-
-### Phase 5: Topic with offsets
-```mermaid
-flowchart TB
-    Topic[orders topic]:::topic --> M0[0: order_placed 1]:::message
-    Topic --> M1[1: order_placed 2]:::message
-    Topic --> M2[2: order_placed 3]:::message
-
-    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
-    classDef message fill:#FFA07A,color:#111,stroke:#333;
-```
-
----
-
-### Phase 6: Consumers with IDs
-```mermaid
-flowchart TB
-    Topic[orders topic]:::topic --> M0[0: order_placed 1]:::message
-    M0 --> Email[email_consumer]:::consumer
-    M0 --> Warehouse[warehouse_consumer]:::consumer
-
-    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
-    classDef message fill:#FFA07A,color:#111,stroke:#333;
-    classDef consumer fill:#90EE90,color:#111,stroke:#333;
-```
-
----
-
-### Phase 7: Polling new messages
-```mermaid
-sequenceDiagram
-    participant Email as email_consumer
-    participant Kafka as Kafka
-    Email->>Kafka: Poll for new messages
-    Kafka-->>Email: order_placed 1
-```
-
----
-
-### Phase 8: Commit offset
-```mermaid
-sequenceDiagram
-    participant Email as email_consumer
-    participant Kafka as Kafka
-    Email->>Kafka: Commit offset 1
-    Kafka-->>Email: Ok
-```
-
----
-
-### Phase 9: Consume multiple messages
-
-```mermaid
-flowchart TB
-    Topic[orders topic]:::topic --> M0[0: order_placed 1]:::message
-    Topic --> M1[1: order_placed 2]:::message
-    Email[email_consumer]:::consumer --> M0
-    Email --> M1
-
-    classDef topic fill:#DDA0DD,color:#111,stroke:#333;
-    classDef message fill:#FFA07A,color:#111,stroke:#333;
-    classDef consumer fill:#90EE90,color:#111,stroke:#333;
-```
 
 ## Events as Messages
-When we pass an event from one place to another, it is a message.
-Kafka not only facilitates the storage of events, but also the passing of events from
-one place to another.
 
-Therefore, Kafka uses the term “messages” for events.
+When an event is passed from one place to another, it is a message.  
+Kafka not only facilitates the storage of events but also the passing of events between services.  
+*Terminology note:* In Kafka, events are called “messages.”
 
-# How Does Kafka Facilitate Event Streaming?
-Kafka stores durable and scalable logs of messages.
-- It allows applications to produce messages to the log.
-- It allows applications to consume messages from the log.
-- It allows the messages to be stored for as long as required
 
-## Kafka Topic with Message Offsets
-```mermaid
-flowchart LR
-    subgraph Kafka
-        T[orders topic]:::topic
-        T -->|0| M1[order_placed 1]:::message
-        T -->|1| M2[order_placed 2]:::message
-    end
-    A[Order Service]:::producer --> T
-    B[Warehouse Service]:::producer --> T
-    T --> C[Email Service]:::consumer
+## How Does Kafka Facilitate Event Streaming?
 
-    classDef producer fill:#FFD700,stroke:#333;
-    classDef consumer fill:#90EE90,stroke:#333;
-    classDef topic fill:#DDA0DD,stroke:#333;
-    classDef message fill:#FFA07A,stroke:#333;
-```
+Kafka enables event streaming by:
 
-## 3. Kafka Cluster with Partitions
-```mermaid
-flowchart TB
-    subgraph Kafka Cluster
-        N0[Node 0]:::node --> P0[Partition 0]:::partition
-        N1[Node 1]:::node --> P1[Partition 1]:::partition
-        N2[Node 2]:::node --> P2[Partition 2]:::partition
-    end
-    A[Order Service]:::producer --> P0
-    A --> P1
-    A --> P2
+- Storing durable and scalable logs of messages.
+- Allowing applications to produce messages to the log.
+- Allowing applications to consume messages from the log.
+- Permitting messages to be stored for as long as required.
 
-    classDef node fill:#E6E6FA,stroke:#333;
-    classDef partition fill:#F5DEB3,stroke:#333;
-    classDef producer fill:#FFD700,stroke:#333;
-```
+## Event Streaming in Kafka (Topics and Offsets)
 
-## 4. Consumer Polling and Offset Commit
-```mermaid
-sequenceDiagram
-    participant EC as EmailConsumer
-    participant K as Kafka
-    EC->>K: Poll for new messages
-    K-->>EC: order_placed 1, 2
-    EC->>K: Commit offset 2
-```
+Kafka stores logs of messages in what are called topics. For example, the "orders topic" holds messages with sequential offsets. One diagram on this page shows a message at offset 0 (with subsequent offsets 1, 2, etc.).
 
-## 5. Replication for Durability
 ```mermaid
 flowchart TD
-    subgraph Kafka Cluster
-        N0[Node 0]:::node
-        N1[Node 1]:::node
-        N2[Node 2]:::node
+    Producer[Order Service]
+    Topic[Kafka: orders topic]
+    Message0[Message (offset 0)]
+    Message1[Message (offset 1)]
+    Message2[Message (offset 2)]
+    
+    Producer -->|order_placed| Topic
+    Topic --> Message0
+    Message0 --> Message1
+    Message1 --> Message2
+```
+
+## Event Streaming in Kafka (Consumers with IDs)
+
+Kafka tracks which offset a given consumer has processed. In this diagram, each consumer (with an associated ID) consumes messages from the topic.
+
+```mermaid
+flowchart LR
+    Producer[Order Service]
+    Topic[Kafka: orders topic]
+    Consumer1[Email Service (email_consumer)]
+    Consumer2[Warehouse Service (warehouse_consumer)]
+    
+    Producer -->|order_placed| Topic
+    Topic --> Consumer1
+    Topic --> Consumer2
+```
+
+## Event Streaming in Kafka (Polling)
+
+Consumers poll Kafka for new messages. The diagram (similar to previous ones) indicates that a consumer repeatedly checks the topic, receives new messages, and then processes them.
+
+```mermaid
+flowchart LR
+    PollingConsumer[Consumer Polling]
+    Topic[Kafka: orders topic]
+    NewMsg[New messages?]
+    
+    PollingConsumer --> Topic
+    Topic --> NewMsg
+```
+
+
+## Event Streaming in Kafka (Committing Offsets)
+
+After consuming messages, consumers tell Kafka to update (or commit) the offset. This ensures Kafka knows which messages have been processed.
+
+```mermaid
+flowchart LR
+    Consumer[Consumer]
+    Topic[Kafka: orders topic]
+    Commit[Commit Offset]
+    
+    Consumer --> Topic
+    Consumer -- commits --> Commit
+```
+
+## Event Streaming in Kafka (Multiple Events)
+
+Consumers can process multiple messages per poll. This page illustrates sequential consumption of several messages.
+
+```mermaid
+flowchart TD
+    subgraph Topic[Kafka: orders topic]
+        M1[Message 1]
+        M2[Message 2]
     end
+    Consumer[Consumer]
+    
+    Consumer -->|poll| M1
+    Consumer -->|poll| M2
+```
 
-    N0 -->|Partition 1 - Replica 0| P1R0:::replica
-    N0 -->|Partition 2 - Replica 1| P2R1:::replica
-    N1 -->|Partition 0 - Replica 0| P0R0:::replica
-    N1 -->|Partition 1 - Replica 1| P1R1:::replica
-    N2 -->|Partition 0 - Replica 1| P0R1:::replica
-    N2 -->|Partition 2 - Replica 0| P2R0:::replica
+## Durable and Scalable
 
-    classDef node fill:#ADD8E6,stroke:#333;
-    classDef replica fill:#FFE4B5,stroke:#333;
+Kafka’s design ensures that:
+- **Durable:** Stored messages are resilient to failures.
+- **Scalable:** The system can handle millions of messages per second and will not lose data even if a machine fails.
+
+
+
+## Kafka Clusters
+
+Kafka is designed to run as a cluster—a group of machines that coordinate with one another.
+
+```mermaid
+graph LR
+    Cluster[(Kafka Cluster)]
+    Node0[Node 0]
+    Node1[Node 1]
+    Node2[Node 2]
+    
+    Cluster --> Node0
+    Cluster --> Node1
+    Cluster --> Node2
+```
+
+
+## Partitions
+
+Every topic in Kafka consists of one or more partitions. This enables the topic’s data to be split and distributed across different nodes.
+
+
+## Partitions (Scalability)
+
+Messages produced to a topic are assigned to partitions. This page shows a simplified view of partitions across cluster nodes.
+
+```mermaid
+flowchart LR
+    Node0[Node 0]
+    Node1[Node 1]
+    Node2[Node 2]
+    Part0[orders topic - partition 0]
+    Part1[orders topic - partition 1]
+    Part2[orders topic - partition 2]
+    
+    Node0 --> Part1
+    Node1 --> Part0
+    Node2 --> Part2
+```
+
+## Partitions (Consumer Parallelism)
+
+```mermaid
+flowchart LR
+    Part1[Partition 1]
+    Part2[Partition 2]
+    Part0[Partition 0]
+    ConsumerA[Email Service Instance 0]
+    ConsumerB[Email Service Instance 1]
+    
+    Part1 --> ConsumerA
+    Part2 --> ConsumerA
+    Part0 --> ConsumerB
+```
+
+
+## Partitions (Durability & Replication)
+
+```mermaid
+flowchart LR
+    Node0[Node 0]
+    Node1[Node 1]
+    Node2[Node 2]
+    
+    P1r0[orders topic - partition 1, replica 0]
+    P2r1[orders topic - partition 2, replica 1]
+    P0r0[orders topic - partition 0, replica 0]
+    P1r1[orders topic - partition 1, replica 1]
+    P0r1[orders topic - partition 0, replica 1]
+    P2r0[orders topic - partition 2, replica 0]
+    
+    Node0 --> P1r0
+    Node0 --> P2r1
+    Node1 --> P0r0
+    Node1 --> P1r1
+    Node2 --> P0r1
+    Node2 --> P2r0
 ```
