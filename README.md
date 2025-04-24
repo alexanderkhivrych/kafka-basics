@@ -82,8 +82,8 @@ Kafka tracks which offset a given consumer has processed. In this diagram, each 
 flowchart LR
     Producer[Order Service]
     Topic[Kafka: orders topic]
-    Consumer1[Email Service (email_consumer)]
-    Consumer2[Warehouse Service (warehouse_consumer)]
+    Consumer1[Email Service email_consumer]
+    Consumer2[Warehouse Service warehouse_consumer]
     
     Producer -->|order_placed| Topic
     Topic --> Consumer1
