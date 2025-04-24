@@ -163,11 +163,18 @@ graph LR
 ## Partitions
 
 Every topic in Kafka consists of one or more partitions. This enables the topic’s data to be split and distributed across different nodes.
+Partitions allow a topic to be split between multiple nodes in a Kafka cluster.
 
 
 ## Partitions (Scalability)
-
-Messages produced to a topic are assigned to partitions. This page shows a simplified view of partitions across cluster nodes.
+- Messages sent to a topic are distributed across partitions.
+- Each message is assigned to a partition based on its key — this process is deterministic.
+- If multiple messages have the same key, they will always go to the same partition.
+- This ensures that message ordering is preserved within a partition.
+- Partitions allow Kafka to scale:
+  - They distribute load across multiple nodes.
+  - Consumers can be parallelized — one per partition, for better throughput.
+  - 
 
 ```mermaid
 flowchart LR
@@ -199,7 +206,11 @@ flowchart LR
 ```
 
 
-## Partitions (Durability & Replication)
+## Partitions: Durability and Replication
+
+- Each partition is replicated across multiple nodes in the Kafka cluster.
+- This replication provides fault tolerance.
+- If a node goes down, Kafka can continue operating using the replicas on other nodes
 
 ```mermaid
 flowchart LR
