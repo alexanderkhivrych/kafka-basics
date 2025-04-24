@@ -51,9 +51,9 @@ Kafka stores logs of messages in what are called topics. For example, the "order
 flowchart TD
     Producer[Order Service]
     Topic[Kafka: orders topic]
-    Message0[Message (offset 0)]
-    Message1[Message (offset 1)]
-    Message2[Message (offset 2)]
+    Message0[Message - offset 0]
+    Message1[Message - offset 1]
+    Message2[Message - offset 2]
     
     Producer -->|order_placed| Topic
     Topic --> Message0
